@@ -17,7 +17,7 @@ cmd="python train_baseline.py --dataset_mode=multimodal --model=utt_self_supervi
 --output_dim=1 --cls_layers=128,128 --dropout_rate=0.3
 --niter=30 --niter_decay=10 --verbose --beta1=0.9
 --batch_size=64 --lr=2e-4 --run_idx=$run_idx
---name=mamba_pretrain --suffix={modality}_run{run_idx} --has_test
+--name=MOSI_utt_self_supervise --suffix={modality}_run{run_idx} --has_test
 --cvNo=$i"
 
 

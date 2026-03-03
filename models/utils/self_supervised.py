@@ -8,8 +8,8 @@ from collections import OrderedDict
 import torch.nn.functional as F
 from models.base_model import BaseModel
 from models.networks.fc import FcEncoder
-from models.networks.lstm import LSTMEncoder
-from models.networks.textcnn import TextCNN
+from models.networks.mamba_encoder import MambaEncoder
+
 from models.networks.classifier import FcClassifier
 from models.networks.autoencoder_2 import ResidualAE
 from models.utt_fusion_model import UttFusionModel
@@ -59,11 +59,11 @@ class SelfSupervisedModel(BaseModel):
         self.model_names = ['A', 'V', 'L', 'C', 'AE', 'Shared']   # 六个模块的名称
         
         # acoustic model
-        self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+        self.netA = MambaEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
         # lexical model 文本
-        self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l)
+        self.netL = MambaEncoder(opt.input_dim_l, opt.embd_size_l, embd_method="maxpool", bidirectional=True)
         # visual model
-        self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
+        self.netV = MambaEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
         # AE model  级联残差自编码器
 
         AE_layers = list(map(lambda x: int(x), opt.AE_layers.split(',')))

@@ -5,8 +5,8 @@ import json
 import torch.nn.functional as F
 from models.base_model import BaseModel
 from models.networks.fc import FcEncoder
-from models.networks.lstm import LSTMEncoder
-from models.networks.textcnn import TextCNN
+from models.networks.mamba_encoder import MambaEncoder
+
 from models.networks.classifier import FcClassifier
 
 ''' Implementation of 
@@ -54,21 +54,21 @@ class ImplFusionModel(BaseModel):
         if 'A' in self.trn_modality:
             self.model_names.append('A')
             self.loss_names.append('CE_A')
-            self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size, embd_method=opt.embd_method_a)
+            self.netA = MambaEncoder(opt.input_dim_a, opt.embd_size, embd_method=opt.embd_method_a)
             self.weight_a = opt.weight_a
             
         # lexical model
         if 'L' in self.trn_modality:
             self.model_names.append('L')
             self.loss_names.append('CE_L')
-            self.netL = TextCNN(opt.input_dim_l, opt.embd_size)
+            self.netL = MambaEncoder(opt.input_dim_l, opt.embd_size, embd_method="maxpool", bidirectional=True)
             self.weight_l = opt.weight_l
             
         # visual model
         if 'V' in self.trn_modality:
             self.model_names.append('V')
             self.loss_names.append('CE_V')
-            self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size, opt.embd_method_v)
+            self.netV = MambaEncoder(opt.input_dim_v, opt.embd_size, opt.embd_method_v)
             self.weight_v = opt.weight_v
             
         if self.isTrain:

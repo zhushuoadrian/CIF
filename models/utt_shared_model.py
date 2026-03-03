@@ -5,8 +5,8 @@ import json
 import torch.nn.functional as F
 from models.base_model import BaseModel
 from models.networks.fc import FcEncoder
-from models.networks.lstm import LSTMEncoder
-from models.networks.textcnn import TextCNN
+from models.networks.mamba_encoder import MambaEncoder
+
 from models.networks.classifier import FcClassifier, Fusion
 from models.networks.shared import SharedEncoder
 from models.utils import CMD
@@ -56,17 +56,17 @@ class UttSharedModel(BaseModel):
         # acoustic model
         if 'A' in self.modality:
             self.model_names.append('A')
-            self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+            self.netA = MambaEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
             
         # lexical model
         if 'L' in self.modality:
             self.model_names.append('L')
-            self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l)
+            self.netL = MambaEncoder(opt.input_dim_l, opt.embd_size_l, embd_method="maxpool", bidirectional=True)
             
         # visual model
         if 'V' in self.modality:
             self.model_names.append('V')
-            self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
+            self.netV = MambaEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
 
         self.loss_cmd_func = CMD()
             

@@ -1,14 +1,17 @@
 #!/bin/bash
 
-# ================= 配置区域 (已根据您的路径修正) =================
-# 1. 实验名称 (匹配文件夹的前缀)
-BASE_NAME="name=CIF_MMIN_MOSI_FusionOpt_Mamba_REAL_V1" 
+# ================= 配置区域 =================
+# 1. 实验名称 (完整的文件夹名称)
+BASE_NAME="CIF_MMIN_MOSI_block_5_run_0_1" 
 
-# 2. 日志根目录 (根据您提供的 autodl-tmp/CIF/logs/...)
+# 2. 日志根目录
 LOG_DIR="./logs"
 
-# 7种模态 (对应 result_total.tsv, result_azz.tsv 等)
+# 3. 7种模态 (对应 result_total.tsv, result_azz.tsv 等)
 MODALITIES=("total" "azz" "zvz" "zzl" "avz" "azl" "zvl")
+
+# 4. 统计的Epoch数量
+NUM_EPOCHS=10
 # ===========================================
 
 FMT="%-6s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s | %-10s\n"
@@ -17,44 +20,47 @@ DIVIDER="-----------------------------------------------------------------------
 echo ""
 echo "================================================================================================"
 echo "实验名称: $BASE_NAME"
-echo "搜索路径: $LOG_DIR"
-echo "指标统计: MAE (读取 result_*.tsv 文件)"
+echo "搜索路径: $LOG_DIR/$BASE_NAME/results"
+echo "指标统计: MAE (前 $NUM_EPOCHS 个 Epoch)"
 echo "================================================================================================"
 
+# 检查目录是否存在
+TARGET_DIR="$LOG_DIR/$BASE_NAME/results"
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "❌ 错误: 目录不存在 $TARGET_DIR"
+    echo ""
+    echo "当前 logs 目录内容:"
+    ls -la "$LOG_DIR" | grep -i mosi
+    exit 1
+fi
+
+echo "✅ 找到结果目录: $TARGET_DIR"
+echo ""
+
 # 1. 打印表头
-printf "$FMT" "Fold" "TOTAL" "AZZ" "ZVZ" "ZZL" "AVZ" "AZL" "ZVL"
+printf "$FMT" "Epoch" "TOTAL" "AZZ" "ZVZ" "ZZL" "AVZ" "AZL" "ZVL"
 echo "$DIVIDER"
 
-# 初始化
+# 初始化求和数组
 declare -A SUMS
 declare -A COUNTS
-for mod in "${MODALITIES[@]}"; do SUMS[$mod]=0; COUNTS[$mod]=0; done
+for mod in "${MODALITIES[@]}"; do 
+    SUMS[$mod]=0
+    COUNTS[$mod]=0
+done
 
-# 2. 循环遍历 1 到 10 折
+# 2. 循环遍历每个 Epoch (1 到 10)
 for i in {1..10}; do
     line_output="$i"
     
-    # === 智能查找逻辑 (修正版) ===
-    # 1. 在 ./logs 下查找
-    # 2. 名字包含 BASE_NAME (Mamba_Fix)
-    # 3. 名字包含 fold1 (注意: 这里兼容 fold1, fold01, run_fold1 等写法)
-    TARGET_DIR=$(find "$LOG_DIR" -maxdepth 1 -type d -name "*${BASE_NAME}*fold${i}" | sort -r | head -n 1)
-
-    # 如果还是没找到，尝试找带有 _idx1 后缀的 (以防万一)
-    if [ -z "$TARGET_DIR" ]; then
-        TARGET_DIR=$(find "$LOG_DIR" -maxdepth 1 -type d -name "*${BASE_NAME}*fold${i}_*" | sort -r | head -n 1)
-    fi
-
+    # 遍历每个模态
     for mod in "${MODALITIES[@]}"; do
+        FILE="$TARGET_DIR/result_${mod}.tsv"
         VAL="-"
         
-        if [ -n "$TARGET_DIR" ]; then
-            FILE="$TARGET_DIR/results/result_${mod}.tsv"
-            
-            if [ -f "$FILE" ]; then
-                # 读取最后一行有效的数字
-                VAL=$(awk '$1 ~ /^[0-9]+(\.[0-9]+)?$/ { last_val = $1 } END { print last_val }' "$FILE")
-            fi
+        if [ -f "$FILE" ]; then
+            # 读取第 i+1 行 (第1行是表头,第2行是Epoch 1)
+            VAL=$(awk -v row=$((i+1)) 'NR==row && $1 ~ /^[0-9]+(\.[0-9]+)?$/ {print $1}' "$FILE")
         fi
         
         # 检查是否为有效数字
@@ -89,5 +95,18 @@ done
 
 printf "$FMT" $avg_output
 echo "================================================================================================"
-echo "提示: 脚本正在搜索 $LOG_DIR 下名为 $BASE_NAME... 的文件夹"
+echo ""
+echo "说明:"
+echo "- Epoch 1-10: 每个训练周期的 MAE 值"
+echo "- AVG: 前 $NUM_EPOCHS 个 Epoch 的平均 MAE"
+echo "- MAE (Mean Absolute Error): 越低越好"
+echo ""
+echo "模态说明:"
+echo "  TOTAL: 完整三模态 (Audio + Visual + Text)"
+echo "  AZZ:   只有 Audio (Visual和Text缺失)"
+echo "  ZVZ:   只有 Visual (Audio和Text缺失)"
+echo "  ZZL:   只有 Text (Audio和Visual缺失)"
+echo "  AVZ:   Audio + Visual (Text缺失)"
+echo "  AZL:   Audio + Text (Visual缺失)"
+echo "  ZVL:   Visual + Text (Audio缺失)"
 echo ""

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class LSTMEncoder(nn.Module):
+class MambaEncoder(nn.Module):
     ''' one directional LSTM encoder
     '''
     def __init__(self, input_size, hidden_size, embd_method='last', bidirectional=False):
