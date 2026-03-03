@@ -10,6 +10,8 @@ from models.networks.lstm import LSTMEncoder
 from models.networks.textcnn import TextCNN
 from models.networks.classifier import FcClassifier, Fusion
 from models.networks.autoencoder_2 import ResidualAE
+# ⭐ 新增: 导入Mamba Encoder
+from models.networks.mamba_encoder import BiMambaEncoder
 # 引入融合模块
 from models.networks.fusion_opt import OptimizedFusionClassifier
 from models.utils.config import OptConfig
@@ -94,6 +96,11 @@ class CIFMMINModel(BaseModel):
         
         # Mamba 相关参数
         parser.add_argument('--mamba_d_state', type=int, default=16, help='state dimension for mamba')
+# ⭐ 新增以下4行
+        parser.add_argument('--use_mamba', action='store_true', help='use Mamba encoder instead of LSTM/TextCNN')
+        parser.add_argument('--mamba_d_conv', type=int, default=4, help='convolution kernel for mamba')
+        parser.add_argument('--mamba_expand', type=int, default=2, help='expansion factor for mamba')
+parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout for mamba encoder')
         
         # 补全参数
         parser.add_argument('--align_dim', type=int, default=128, help='alignment dimension')
@@ -106,20 +113,99 @@ class CIFMMINModel(BaseModel):
         self.loss_names = ['CE', 'mse', 'consistent']
         self.model_names = ['C', 'AE'] 
 
-        # acoustic model
-        self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+                # ========================================
+        # Modality Encoders: 根据use_mamba参数选择使用Mamba或LSTM
+        # ========================================
+        self.use_mamba = getattr(opt, 'use_mamba', False)
+        
+        if self.use_mamba:
+            print("==> [CIF-MMIN] Using Mamba-based Modality Encoders")
+            
+            # ⭐ Audio Mamba Encoder
+            self.netA = BiMambaEncoder(
+                input_dim=opt.input_dim_a,
+                output_dim=opt.embd_size_a,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+            
+            # ⭐ Text Mamba Encoder
+            self.netL = BiMambaEncoder(
+                input_dim=opt.input_dim_l,
+                output_dim=opt.embd_size_l,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+            
+            # ⭐ Visual Mamba Encoder
+            self.netV = BiMambaEncoder(
+                input_dim=opt.input_dim_v,
+                output_dim=opt.embd_size_v,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+        else:
+            print("==> [CIF-MMIN] Using original LSTM/TextCNN Encoders")
+            # acoustic model
+            self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+            # lexical model
+            self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l, dropout=0.5)
+            # visual model
+            self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
+        
         self.model_names.append('A')
-        self.netConA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
-        self.model_names.append('ConA')
-        # lexical model
-        self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l, dropout=0.5)
         self.model_names.append('L')
-        self.netConL = LSTMEncoder(opt.input_dim_l, opt.embd_size_l)
-        self.model_names.append('ConL')
-        # visual model
-        self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
         self.model_names.append('V')
-        self.netConV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
+
+        # ========================================
+        # Invariance Encoders: 根据use_mamba参数选择使用Mamba或LSTM
+        # ========================================
+        if self.use_mamba:
+            print("==> [CIF-MMIN] Using Mamba-based Invariance Encoders")
+            
+            # ⭐ Audio Invariance Mamba Encoder
+            self.netConA = BiMambaEncoder(
+                input_dim=opt.input_dim_a,
+                output_dim=opt.embd_size_a,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+            
+            # ⭐ Text Invariance Mamba Encoder
+            self.netConL = BiMambaEncoder(
+                input_dim=opt.input_dim_l,
+                output_dim=opt.embd_size_l,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+            
+            # ⭐ Visual Invariance Mamba Encoder
+            self.netConV = BiMambaEncoder(
+                input_dim=opt.input_dim_v,
+                output_dim=opt.embd_size_v,
+                d_state=opt.mamba_d_state,
+                d_conv=opt.mamba_d_conv,
+                expand=opt.mamba_expand,
+                dropout=opt.mamba_dropout
+            )
+        else:
+            print("==> [CIF-MMIN] Using original LSTM Invariance Encoders")
+            self.netConA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+            self.netConL = LSTMEncoder(opt.input_dim_l, opt.embd_size_l)
+            self.netConV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
+        
+        self.model_names.append('ConA')
+        self.model_names.append('ConL')
         self.model_names.append('ConV')
         
         # AE model
@@ -209,19 +295,25 @@ class CIFMMINModel(BaseModel):
         self.pretrained_encoder.cuda()
         self.pretrained_encoder.eval()
 
-    def post_process(self):
+        def post_process(self):
         def transform_key_for_parallel(state_dict):
             return OrderedDict([('module.' + key, value) for key, value in state_dict.items()])
 
         if self.isTrain:
             print('[ Init ] Load parameters from pretrained encoder network')
             f = lambda x: transform_key_for_parallel(x)
-            self.netA.load_state_dict(f(self.pretrained_encoder.netA.state_dict()))
-            self.netV.load_state_dict(f(self.pretrained_encoder.netV.state_dict()))
-            self.netL.load_state_dict(f(self.pretrained_encoder.netL.state_dict()))
-            self.netConA.load_state_dict(f(self.pretrained_encoder.netConA.state_dict()))
-            self.netConV.load_state_dict(f(self.pretrained_encoder.netConV.state_dict()))
-            self.netConL.load_state_dict(f(self.pretrained_encoder.netConL.state_dict()))
+            
+            # ⭐ 只有不使用Mamba时才加载预训练LSTM权重
+            if not self.use_mamba:
+                self.netA.load_state_dict(f(self.pretrained_encoder.netA.state_dict()))
+                self.netV.load_state_dict(f(self.pretrained_encoder.netV.state_dict()))
+                self.netL.load_state_dict(f(self.pretrained_encoder.netL.state_dict()))
+                self.netConA.load_state_dict(f(self.pretrained_encoder.netConA.state_dict()))
+                self.netConV.load_state_dict(f(self.pretrained_encoder.netConV.state_dict()))
+                self.netConL.load_state_dict(f(self.pretrained_encoder.netConL.state_dict()))
+            else:
+                print('[ Warning ] Using Mamba encoders, skipping pretrained LSTM weights loading')
+                print('[ Info ] Mamba encoders will be trained from scratch')
 
     def load_from_opt_record(self, file_path):
         opt_content = json.load(open(file_path, 'r'))
