@@ -43,7 +43,7 @@ class ConfidenceGate(nn.Module):
             nn.Linear(input_dim, input_dim // 2),
             nn.ReLU(),
             nn.Linear(input_dim // 2, 1),
-            nn.Sigmoid() # 输出归一化到 0~1
+            nn.Sigmoid()  # 输出归一化到 0~1
         )
 
     def forward(self, feature, hard_mask=None):
@@ -63,22 +63,23 @@ class ConfidenceGate(nn.Module):
             
         return alpha
 
+
 class CIFMMINModel(BaseModel):
     @staticmethod
     def modify_commandline_options(parser, is_train=True):
         parser.add_argument('--input_dim_a', type=int, default=130, help='acoustic input dim')
         parser.add_argument('--input_dim_l', type=int, default=1024, help='lexical input dim')
-        parser.add_argument('--input_dim_v', type=int, default=384, help='lexical input dim')
+        parser.add_argument('--input_dim_v', type=int, default=384, help='visual input dim')
         parser.add_argument('--embd_size_a', default=128, type=int, help='audio model embedding size')
         parser.add_argument('--embd_size_l', default=128, type=int, help='text model embedding size')
         parser.add_argument('--embd_size_v', default=128, type=int, help='visual model embedding size')
-        parser.add_argument('--embd_method_a', default='maxpool', type=str, choices=['last', 'maxpool', 'attention'], \
+        parser.add_argument('--embd_method_a', default='maxpool', type=str, choices=['last', 'maxpool', 'attention'],
                             help='audio embedding method,last,mean or atten')
-        parser.add_argument('--embd_method_v', default='maxpool', type=str, choices=['last', 'maxpool', 'attention'], \
+        parser.add_argument('--embd_method_v', default='maxpool', type=str, choices=['last', 'maxpool', 'attention'],
                             help='visual embedding method,last,mean or atten')
-        parser.add_argument('--AE_layers', type=str, default='128,64,32',
+        parser.add_argument('--AE_layers', type=str, default='256,128,64',
                             help='256,128 for 2 layers with 256, 128 nodes respectively')
-        parser.add_argument('--n_blocks', type=int, default=3, help='number of AE blocks')
+        parser.add_argument('--n_blocks', type=int, default=5, help='number of AE blocks')
         parser.add_argument('--cls_layers', type=str, default='128,128',
                             help='256,128 for 2 layers with 256, 128 nodes respectively')
         parser.add_argument('--dropout_rate', type=float, default=0.3, help='rate of dropout')
@@ -96,11 +97,10 @@ class CIFMMINModel(BaseModel):
         
         # Mamba 相关参数
         parser.add_argument('--mamba_d_state', type=int, default=16, help='state dimension for mamba')
-# ⭐ 新增以下4行
         parser.add_argument('--use_mamba', action='store_true', help='use Mamba encoder instead of LSTM/TextCNN')
         parser.add_argument('--mamba_d_conv', type=int, default=4, help='convolution kernel for mamba')
         parser.add_argument('--mamba_expand', type=int, default=2, help='expansion factor for mamba')
-parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout for mamba encoder')
+        parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout for mamba encoder')
         
         # 补全参数
         parser.add_argument('--align_dim', type=int, default=128, help='alignment dimension')
@@ -113,7 +113,7 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         self.loss_names = ['CE', 'mse', 'consistent']
         self.model_names = ['C', 'AE'] 
 
-                # ========================================
+        # ========================================
         # Modality Encoders: 根据use_mamba参数选择使用Mamba或LSTM
         # ========================================
         self.use_mamba = getattr(opt, 'use_mamba', False)
@@ -208,12 +208,16 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         self.model_names.append('ConL')
         self.model_names.append('ConV')
         
+        # ========================================
         # AE model
+        # ========================================
         AE_layers = list(map(lambda x: int(x), opt.AE_layers.split(',')))
         AE_input_dim = opt.embd_size_a + opt.embd_size_v + opt.embd_size_l
         self.netAE = ResidualAE(AE_layers, opt.n_blocks, AE_input_dim, dropout=0, use_bn=False)
         
-        # 分类层
+        # ========================================
+        # Fusion Classifier with Mamba
+        # ========================================
         cls_layers = list(map(lambda x: int(x), opt.cls_layers.split(',')))
         cls_input_size = opt.embd_size_a + opt.embd_size_v + opt.embd_size_l
         
@@ -229,7 +233,7 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         # =========================================================================
         # [修改点] 软门控核心组件初始化 (注意变量名必须加 net 前缀)
         # =========================================================================
-        # 1. 找回 Prompt (作为 alpha 低时的替补)
+        # 1. Prompt Container (作为 alpha 低时的替补)
         self.netPrompts = PromptContainer(opt)
         self.model_names.append('Prompts')
 
@@ -242,13 +246,19 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         # 将门控加入 model_names
         self.model_names += ['gate_A', 'gate_L', 'gate_V']
 
-        # 兼容旧逻辑的分类器
+        # ========================================
+        # Traditional Classifier (兼容旧逻辑)
+        # ========================================
         if self.opt.corpus_name != 'MOSI':
-            self.netC = FcClassifier(cls_input_size, cls_layers, output_dim=opt.output_dim, dropout=opt.dropout_rate,
-                                     use_bn=opt.bn)
+            self.netC = FcClassifier(cls_input_size, cls_layers, output_dim=opt.output_dim, 
+                                     dropout=opt.dropout_rate, use_bn=opt.bn)
         else:
-            self.netC = Fusion(cls_input_size, cls_layers, output_dim=opt.output_dim, dropout=opt.dropout_rate)
+            self.netC = Fusion(cls_input_size, cls_layers, output_dim=opt.output_dim, 
+                              dropout=opt.dropout_rate)
 
+        # ========================================
+        # Training Setup
+        # ========================================
         if self.isTrain:
             self.load_pretrained_encoder(opt)
             if self.opt.corpus_name != 'MOSI':
@@ -270,6 +280,9 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         else:
             self.load_pretrained_encoder(opt)
 
+        # ========================================
+        # Save directories
+        # ========================================
         self.save_dir = os.path.join(self.save_dir, str(opt.cvNo))
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
@@ -279,9 +292,12 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         self.predict_image_save_dir = os.path.join(image_save_dir, 'predict')
         self.consistent_image_save_dir = os.path.join(image_save_dir, 'consistent')
         self.loss_image_save_dir = os.path.join(image_save_dir, 'loss')
-        if not os.path.exists(self.predict_image_save_dir): os.makedirs(self.predict_image_save_dir)
-        if not os.path.exists(self.consistent_image_save_dir): os.makedirs(self.consistent_image_save_dir)
-        if not os.path.exists(self.loss_image_save_dir): os.makedirs(self.loss_image_save_dir)
+        if not os.path.exists(self.predict_image_save_dir): 
+            os.makedirs(self.predict_image_save_dir)
+        if not os.path.exists(self.consistent_image_save_dir): 
+            os.makedirs(self.consistent_image_save_dir)
+        if not os.path.exists(self.loss_image_save_dir): 
+            os.makedirs(self.loss_image_save_dir)
 
     def load_pretrained_encoder(self, opt):
         print('Init parameter from {}'.format(opt.pretrained_path))
@@ -295,7 +311,7 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         self.pretrained_encoder.cuda()
         self.pretrained_encoder.eval()
 
-        def post_process(self):
+    def post_process(self):
         def transform_key_for_parallel(state_dict):
             return OrderedDict([('module.' + key, value) for key, value in state_dict.items()])
 
@@ -357,15 +373,15 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
 
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
-        # --- 1. 特征提取 ---
+        # ===== Step 1: 特征提取 (Modality Encoding) =====
         self.feat_A_miss = self.netA(self.A_miss) 
         self.feat_L_miss = self.netL(self.L_miss)
         self.feat_V_miss = self.netV(self.V_miss)
         
-        # 构造 h_real
+        # 构造 h_real (原始缺失模态特征拼接)
         self.feat_fusion_miss = torch.cat([self.feat_A_miss, self.feat_L_miss, self.feat_V_miss], dim=-1)
 
-        # --- 2. 提取共性特征 (Input Invariant) ---
+        # ===== Step 2: 提取共性特征 (Invariance Encoding) =====
         feat_A_con = self.netConA(self.A_miss)
         feat_L_con = self.netConL(self.L_miss)
         feat_V_con = self.netConV(self.V_miss)
@@ -383,33 +399,30 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         # 2. 逐模态计算 Alpha 并融合
         # Audio
         hard_mask_a = self.missing_index[:, 0].unsqueeze(1).float()
-        # 【修正】使用 self.netgate_A
         alpha_a = self.netgate_A(feat_A_con, hard_mask_a) 
         curr_prompt_A = prompts_module.prompt_A.expand(feat_A_con.size(0), -1)
         feat_A_refined = feat_A_con * alpha_a + curr_prompt_A * (1 - alpha_a)
 
         # Text
         hard_mask_l = self.missing_index[:, 2].unsqueeze(1).float()
-        # 【修正】使用 self.netgate_L
         alpha_l = self.netgate_L(feat_L_con, hard_mask_l)
         curr_prompt_L = prompts_module.prompt_L.expand(feat_L_con.size(0), -1)
         feat_L_refined = feat_L_con * alpha_l + curr_prompt_L * (1 - alpha_l)
 
         # Video
         hard_mask_v = self.missing_index[:, 1].unsqueeze(1).float()
-        # 【修正】使用 self.netgate_V
         alpha_v = self.netgate_V(feat_V_con, hard_mask_v)
         curr_prompt_V = prompts_module.prompt_V.expand(feat_V_con.size(0), -1)
         feat_V_refined = feat_V_con * alpha_v + curr_prompt_V * (1 - alpha_v)
 
-        # 3. 构造 Refined Query
+        # 3. 构造 Refined Query (Invariant + Prompt)
         self.consistent_miss = torch.cat([feat_A_refined, feat_L_refined, feat_V_refined], dim=-1)
 
-        # --- 3. 想象/重构 (Imagined) ---
+        # ===== Step 3: 特征重构 (Feature Reconstruction via AE) =====
         self.recon_fusion, _ = self.netAE(self.feat_fusion_miss, self.consistent_miss)
 
         # =========================================================================
-        # 调用 FusionOpt
+        # Step 4: 调用 Fusion Classifier with Mamba
         # =========================================================================
         self.logits, _ = self.netFusionOpt(
             h_real=self.feat_fusion_miss, 
@@ -422,7 +435,7 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
         else:
             self.pred = self.logits
 
-        # for training 
+        # ===== For training: Get teacher embeddings =====
         if self.isTrain:
             with torch.no_grad():
                 self.T_embd_A = self.pretrained_encoder.netA(self.A_reverse)
@@ -436,14 +449,15 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
                 self.consistent = torch.cat([embd_A_consistent, embd_L_consistent, embd_V_consistent], dim=-1)
 
     def backward(self):
+        """Calculate the loss for back propagation"""
         # 分类损失
         self.loss_CE = self.ce_weight * self.criterion_ce(self.logits, self.label)
-        # forward损失
+        # 重构损失 (forward)
         self.loss_mse = self.mse_weight * self.criterion_mse(self.T_embds, self.recon_fusion)
-        # 共性特征损失
+        # 共性特征一致性损失
         self.loss_consistent = self.consistent_weight * self.criterion_mse(self.consistent, self.consistent_miss)
         
-        # 综合损失
+        # 总损失
         loss = self.loss_CE + self.loss_mse + self.loss_consistent
         loss.backward()
         
@@ -452,6 +466,7 @@ parser.add_argument('--mamba_dropout', type=float, default=0.1, help='dropout fo
             torch.nn.utils.clip_grad_norm_(getattr(self, 'net' + model).parameters(), 1.0)
 
     def optimize_parameters(self, epoch):
+        """Calculate losses, gradients, and update network weights; called in every training iteration"""
         self.forward()
         self.optimizer.zero_grad()
         self.backward()
