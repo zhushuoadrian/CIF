@@ -1,0 +1,260 @@
+2025-12-27 11:38:05,404 - utils.logger2025-12-27-11.37.56 - INFO - The number of training samples = 4446
+2025-12-27 11:38:05,404 - utils.logger2025-12-27-11.37.56 - INFO - The number of testing samples = 3342
+2025-12-27 11:38:10,637 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 1 loss CE:0.8774 mse:0.0276 consistent:0.0000
+2025-12-27 11:38:12,576 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 1, iters 139
+2025-12-27 11:38:12,685 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 1 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:12,685 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:38:13,955 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 1 / 40 acc 0.5777 uar 0.5931 f1 0.5768
+2025-12-27 11:38:15,265 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 1 / 40 acc 0.6059 uar 0.6220 f1 0.6057
+2025-12-27 11:38:17,978 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 2 loss CE:0.6521 mse:0.0193 consistent:0.0000
+2025-12-27 11:38:21,710 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 2, iters 278
+2025-12-27 11:38:21,807 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 2 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:21,808 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:38:23,014 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 2 / 40 acc 0.5947 uar 0.6220 f1 0.5897
+2025-12-27 11:38:24,293 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 2 / 40 acc 0.6197 uar 0.6428 f1 0.6236
+2025-12-27 11:38:25,248 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 3 loss CE:0.5964 mse:0.0145 consistent:0.0000
+2025-12-27 11:38:29,837 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 3 loss CE:0.7232 mse:0.0138 consistent:0.0000
+2025-12-27 11:38:30,666 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 3, iters 417
+2025-12-27 11:38:30,762 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 3 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:30,762 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:38:31,987 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 3 / 40 acc 0.6121 uar 0.6497 f1 0.6010
+2025-12-27 11:38:33,262 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 3 / 40 acc 0.6056 uar 0.6469 f1 0.6067
+2025-12-27 11:38:37,304 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 4 loss CE:0.5691 mse:0.0149 consistent:0.0000
+2025-12-27 11:38:40,083 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 4, iters 556
+2025-12-27 11:38:40,180 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 4 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:40,180 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:38:41,378 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 4 / 40 acc 0.6054 uar 0.6397 f1 0.6005
+2025-12-27 11:38:42,681 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 4 / 40 acc 0.6272 uar 0.6563 f1 0.6312
+2025-12-27 11:38:44,728 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 5 loss CE:0.3615 mse:0.0131 consistent:0.0000
+2025-12-27 11:38:49,393 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 5, iters 695
+2025-12-27 11:38:49,513 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 5 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:49,513 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:38:50,987 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 5 / 40 acc 0.6152 uar 0.6465 f1 0.6037
+2025-12-27 11:38:52,298 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 5 / 40 acc 0.6035 uar 0.6478 f1 0.6028
+2025-12-27 11:38:52,510 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 6 loss CE:0.4025 mse:0.0119 consistent:0.0000
+2025-12-27 11:38:57,169 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 6 loss CE:0.4396 mse:0.0116 consistent:0.0000
+2025-12-27 11:38:58,828 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 6, iters 834
+2025-12-27 11:38:58,926 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 6 / 40 	 Time Taken: 6 sec
+2025-12-27 11:38:58,926 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:00,142 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 6 / 40 acc 0.6029 uar 0.6403 f1 0.5851
+2025-12-27 11:39:01,454 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 6 / 40 acc 0.5733 uar 0.6343 f1 0.5746
+2025-12-27 11:39:04,628 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 7 loss CE:0.3599 mse:0.0129 consistent:0.0000
+2025-12-27 11:39:08,188 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 7, iters 973
+2025-12-27 11:39:08,287 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 7 / 40 	 Time Taken: 6 sec
+2025-12-27 11:39:08,287 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:09,504 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 7 / 40 acc 0.6256 uar 0.6512 f1 0.6190
+2025-12-27 11:39:10,816 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 7 / 40 acc 0.6041 uar 0.6456 f1 0.6074
+2025-12-27 11:39:12,012 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 8 loss CE:0.5261 mse:0.0158 consistent:0.0000
+2025-12-27 11:39:16,885 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 8 loss CE:0.6691 mse:0.0101 consistent:0.0000
+2025-12-27 11:39:17,479 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 8, iters 1112
+2025-12-27 11:39:17,574 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 8 / 40 	 Time Taken: 6 sec
+2025-12-27 11:39:17,574 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:18,788 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 8 / 40 acc 0.5994 uar 0.6353 f1 0.5860
+2025-12-27 11:39:20,075 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 8 / 40 acc 0.5874 uar 0.6396 f1 0.5903
+2025-12-27 11:39:24,327 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 9 loss CE:0.7691 mse:0.0134 consistent:0.0000
+2025-12-27 11:39:26,718 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 9, iters 1251
+2025-12-27 11:39:26,812 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 9 / 40 	 Time Taken: 6 sec
+2025-12-27 11:39:26,813 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:28,026 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 9 / 40 acc 0.6127 uar 0.6413 f1 0.6021
+2025-12-27 11:39:29,266 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 9 / 40 acc 0.5996 uar 0.6476 f1 0.6041
+2025-12-27 11:39:31,502 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 10 loss CE:0.4466 mse:0.0097 consistent:0.0000
+2025-12-27 11:39:35,886 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 10, iters 1390
+2025-12-27 11:39:35,982 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 10 / 40 	 Time Taken: 6 sec
+2025-12-27 11:39:35,982 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:37,191 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 10 / 40 acc 0.6225 uar 0.6460 f1 0.6232
+2025-12-27 11:39:38,450 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 10 / 40 acc 0.6421 uar 0.6543 f1 0.6465
+2025-12-27 11:39:38,876 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 11 loss CE:0.3472 mse:0.0101 consistent:0.0000
+2025-12-27 11:39:43,710 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 11 loss CE:0.5172 mse:0.0115 consistent:0.0000
+2025-12-27 11:39:45,111 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 11, iters 1529
+2025-12-27 11:39:45,209 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 11 / 40 	 Time Taken: 6 sec
+2025-12-27 11:39:45,209 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:46,421 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 11 / 40 acc 0.6209 uar 0.6401 f1 0.6173
+2025-12-27 11:39:47,721 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 11 / 40 acc 0.6149 uar 0.6341 f1 0.6197
+2025-12-27 11:39:50,480 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 12 loss CE:0.5069 mse:0.0093 consistent:0.0000
+2025-12-27 11:39:52,939 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 12, iters 1668
+2025-12-27 11:39:53,031 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 12 / 40 	 Time Taken: 5 sec
+2025-12-27 11:39:53,031 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:39:54,245 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 12 / 40 acc 0.5783 uar 0.6231 f1 0.5616
+2025-12-27 11:39:55,537 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 12 / 40 acc 0.5757 uar 0.6397 f1 0.5775
+2025-12-27 11:39:56,956 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 13 loss CE:0.4580 mse:0.0102 consistent:0.0000
+2025-12-27 11:40:01,765 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 13 loss CE:0.6431 mse:0.0131 consistent:0.0000
+2025-12-27 11:40:02,105 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 13, iters 1807
+2025-12-27 11:40:02,205 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 13 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:02,205 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:03,423 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 13 / 40 acc 0.6140 uar 0.6389 f1 0.6096
+2025-12-27 11:40:04,681 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 13 / 40 acc 0.6281 uar 0.6540 f1 0.6314
+2025-12-27 11:40:09,109 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 14 loss CE:0.5178 mse:0.0092 consistent:0.0000
+2025-12-27 11:40:11,349 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 14, iters 1946
+2025-12-27 11:40:11,462 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 14 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:11,462 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:12,691 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 14 / 40 acc 0.6244 uar 0.6528 f1 0.6135
+2025-12-27 11:40:13,994 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 14 / 40 acc 0.6212 uar 0.6634 f1 0.6233
+2025-12-27 11:40:16,552 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 15 loss CE:0.5069 mse:0.0118 consistent:0.0000
+2025-12-27 11:40:20,662 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 15, iters 2085
+2025-12-27 11:40:20,758 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 15 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:20,758 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:21,989 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 15 / 40 acc 0.6417 uar 0.6667 f1 0.6354
+2025-12-27 11:40:23,283 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 15 / 40 acc 0.6281 uar 0.6595 f1 0.6316
+2025-12-27 11:40:23,914 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 16 loss CE:0.3166 mse:0.0073 consistent:0.0000
+2025-12-27 11:40:28,870 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 16 loss CE:0.7468 mse:0.0084 consistent:0.0000
+2025-12-27 11:40:30,050 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 16, iters 2224
+2025-12-27 11:40:30,146 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 16 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:30,146 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:31,407 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 16 / 40 acc 0.5997 uar 0.6307 f1 0.5930
+2025-12-27 11:40:32,694 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 16 / 40 acc 0.6128 uar 0.6336 f1 0.6147
+2025-12-27 11:40:36,278 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 17 loss CE:0.3912 mse:0.0135 consistent:0.0000
+2025-12-27 11:40:39,511 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 17, iters 2363
+2025-12-27 11:40:39,629 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 17 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:39,629 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:41,146 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 17 / 40 acc 0.6004 uar 0.6367 f1 0.5881
+2025-12-27 11:40:42,536 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 17 / 40 acc 0.6038 uar 0.6565 f1 0.6066
+2025-12-27 11:40:44,238 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 18 loss CE:0.5345 mse:0.0116 consistent:0.0000
+2025-12-27 11:40:49,215 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 18 loss CE:0.5543 mse:0.0098 consistent:0.0000
+2025-12-27 11:40:49,331 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 18, iters 2502
+2025-12-27 11:40:49,457 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 18 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:49,457 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:40:50,992 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 18 / 40 acc 0.6203 uar 0.6414 f1 0.6153
+2025-12-27 11:40:52,259 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 18 / 40 acc 0.6113 uar 0.6443 f1 0.6152
+2025-12-27 11:40:56,941 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 19 loss CE:0.5646 mse:0.0085 consistent:0.0000
+2025-12-27 11:40:58,968 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 19, iters 2641
+2025-12-27 11:40:59,064 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 19 / 40 	 Time Taken: 6 sec
+2025-12-27 11:40:59,064 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0002000
+2025-12-27 11:41:00,219 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 19 / 40 acc 0.5950 uar 0.6305 f1 0.5853
+2025-12-27 11:41:01,442 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 19 / 40 acc 0.6011 uar 0.6432 f1 0.6071
+2025-12-27 11:41:04,185 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 20 loss CE:0.3262 mse:0.0073 consistent:0.0000
+2025-12-27 11:41:08,079 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 20, iters 2780
+2025-12-27 11:41:08,214 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 20 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:08,214 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001905
+2025-12-27 11:41:09,776 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 20 / 40 acc 0.6064 uar 0.6390 f1 0.5988
+2025-12-27 11:41:11,178 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 20 / 40 acc 0.6125 uar 0.6530 f1 0.6177
+2025-12-27 11:41:12,034 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 21 loss CE:0.1929 mse:0.0073 consistent:0.0000
+2025-12-27 11:41:16,743 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 21 loss CE:0.3393 mse:0.0107 consistent:0.0000
+2025-12-27 11:41:17,679 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 21, iters 2919
+2025-12-27 11:41:17,777 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 21 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:17,777 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001810
+2025-12-27 11:41:18,991 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 21 / 40 acc 0.6045 uar 0.6321 f1 0.5997
+2025-12-27 11:41:20,246 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 21 / 40 acc 0.6044 uar 0.6405 f1 0.6094
+2025-12-27 11:41:24,106 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 22 loss CE:0.3660 mse:0.0073 consistent:0.0000
+2025-12-27 11:41:26,975 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 22, iters 3058
+2025-12-27 11:41:27,074 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 22 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:27,074 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001714
+2025-12-27 11:41:28,292 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 22 / 40 acc 0.6039 uar 0.6321 f1 0.5969
+2025-12-27 11:41:29,605 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 22 / 40 acc 0.6080 uar 0.6525 f1 0.6115
+2025-12-27 11:41:31,608 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 23 loss CE:0.3171 mse:0.0080 consistent:0.0000
+2025-12-27 11:41:36,385 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 23, iters 3197
+2025-12-27 11:41:36,483 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 23 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:36,483 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001619
+2025-12-27 11:41:37,721 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 23 / 40 acc 0.6237 uar 0.6438 f1 0.6179
+2025-12-27 11:41:38,999 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 23 / 40 acc 0.6053 uar 0.6412 f1 0.6098
+2025-12-27 11:41:39,091 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 24 loss CE:0.2284 mse:0.0079 consistent:0.0000
+2025-12-27 11:41:43,134 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 24 loss CE:0.3441 mse:0.0066 consistent:0.0000
+2025-12-27 11:41:44,933 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 24, iters 3336
+2025-12-27 11:41:45,054 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 24 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:45,054 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001524
+2025-12-27 11:41:46,598 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 24 / 40 acc 0.6158 uar 0.6449 f1 0.6121
+2025-12-27 11:41:48,077 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 24 / 40 acc 0.6206 uar 0.6559 f1 0.6259
+2025-12-27 11:41:51,136 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 25 loss CE:0.5358 mse:0.0074 consistent:0.0000
+2025-12-27 11:41:54,819 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 25, iters 3475
+2025-12-27 11:41:54,916 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 25 / 40 	 Time Taken: 6 sec
+2025-12-27 11:41:54,916 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001429
+2025-12-27 11:41:56,145 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 25 / 40 acc 0.6155 uar 0.6371 f1 0.6077
+2025-12-27 11:41:57,461 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 25 / 40 acc 0.6176 uar 0.6544 f1 0.6206
+2025-12-27 11:41:58,486 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 26 loss CE:0.3377 mse:0.0085 consistent:0.0000
+2025-12-27 11:42:03,232 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 26 loss CE:0.5442 mse:0.0074 consistent:0.0000
+2025-12-27 11:42:03,902 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 26, iters 3614
+2025-12-27 11:42:04,017 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 26 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:04,018 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001333
+2025-12-27 11:42:05,569 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 26 / 40 acc 0.5985 uar 0.6336 f1 0.5909
+2025-12-27 11:42:07,198 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 26 / 40 acc 0.6185 uar 0.6577 f1 0.6247
+2025-12-27 11:42:11,366 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 27 loss CE:0.4993 mse:0.0107 consistent:0.0000
+2025-12-27 11:42:13,952 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 27, iters 3753
+2025-12-27 11:42:14,073 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 27 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:14,074 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001238
+2025-12-27 11:42:15,635 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 27 / 40 acc 0.5934 uar 0.6350 f1 0.5828
+2025-12-27 11:42:16,998 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 27 / 40 acc 0.6020 uar 0.6567 f1 0.6059
+2025-12-27 11:42:19,151 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 28 loss CE:0.4655 mse:0.0082 consistent:0.0000
+2025-12-27 11:42:23,554 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 28, iters 3892
+2025-12-27 11:42:23,652 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 28 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:23,652 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001143
+2025-12-27 11:42:24,824 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 28 / 40 acc 0.5966 uar 0.6321 f1 0.5904
+2025-12-27 11:42:26,296 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 28 / 40 acc 0.6137 uar 0.6583 f1 0.6201
+2025-12-27 11:42:26,657 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 29 loss CE:0.4708 mse:0.0072 consistent:0.0000
+2025-12-27 11:42:31,455 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 29 loss CE:0.5264 mse:0.0090 consistent:0.0000
+2025-12-27 11:42:32,956 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 29, iters 4031
+2025-12-27 11:42:33,050 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 29 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:33,050 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0001048
+2025-12-27 11:42:34,258 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 29 / 40 acc 0.6073 uar 0.6415 f1 0.5999
+2025-12-27 11:42:35,530 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 29 / 40 acc 0.6098 uar 0.6587 f1 0.6150
+2025-12-27 11:42:38,635 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 30 loss CE:0.2304 mse:0.0087 consistent:0.0000
+2025-12-27 11:42:41,946 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 30, iters 4170
+2025-12-27 11:42:42,045 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 30 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:42,045 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000952
+2025-12-27 11:42:43,232 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 30 / 40 acc 0.5997 uar 0.6266 f1 0.5876
+2025-12-27 11:42:44,487 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 30 / 40 acc 0.5925 uar 0.6394 f1 0.5987
+2025-12-27 11:42:45,780 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 31 loss CE:0.3443 mse:0.0090 consistent:0.0000
+2025-12-27 11:42:50,422 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 31 loss CE:0.3891 mse:0.0077 consistent:0.0000
+2025-12-27 11:42:50,842 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 31, iters 4309
+2025-12-27 11:42:50,937 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 31 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:50,937 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000857
+2025-12-27 11:42:52,144 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 31 / 40 acc 0.6114 uar 0.6348 f1 0.6073
+2025-12-27 11:42:53,433 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 31 / 40 acc 0.6278 uar 0.6564 f1 0.6332
+2025-12-27 11:42:57,640 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 32 loss CE:0.1044 mse:0.0073 consistent:0.0000
+2025-12-27 11:42:59,580 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 32, iters 4448
+2025-12-27 11:42:59,676 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 32 / 40 	 Time Taken: 6 sec
+2025-12-27 11:42:59,677 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000762
+2025-12-27 11:43:00,865 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 32 / 40 acc 0.6080 uar 0.6378 f1 0.6019
+2025-12-27 11:43:02,129 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 32 / 40 acc 0.6272 uar 0.6673 f1 0.6332
+2025-12-27 11:43:04,430 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 33 loss CE:0.2519 mse:0.0089 consistent:0.0000
+2025-12-27 11:43:08,538 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 33, iters 4587
+2025-12-27 11:43:08,635 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 33 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:08,636 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000667
+2025-12-27 11:43:09,825 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 33 / 40 acc 0.6196 uar 0.6423 f1 0.6152
+2025-12-27 11:43:11,082 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 33 / 40 acc 0.6224 uar 0.6552 f1 0.6295
+2025-12-27 11:43:11,618 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 34 loss CE:0.3631 mse:0.0096 consistent:0.0000
+2025-12-27 11:43:16,330 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 34 loss CE:0.5148 mse:0.0098 consistent:0.0000
+2025-12-27 11:43:17,532 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 34, iters 4726
+2025-12-27 11:43:17,632 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 34 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:17,632 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000571
+2025-12-27 11:43:18,832 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 34 / 40 acc 0.6168 uar 0.6424 f1 0.6073
+2025-12-27 11:43:20,107 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 34 / 40 acc 0.6107 uar 0.6538 f1 0.6158
+2025-12-27 11:43:23,402 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 35 loss CE:0.2569 mse:0.0094 consistent:0.0000
+2025-12-27 11:43:26,417 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 35, iters 4865
+2025-12-27 11:43:26,514 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 35 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:26,514 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000476
+2025-12-27 11:43:27,697 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 35 / 40 acc 0.6165 uar 0.6419 f1 0.6108
+2025-12-27 11:43:28,939 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 35 / 40 acc 0.6185 uar 0.6570 f1 0.6246
+2025-12-27 11:43:30,463 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 36 loss CE:0.2682 mse:0.0082 consistent:0.0000
+2025-12-27 11:43:35,193 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 36 loss CE:0.3249 mse:0.0071 consistent:0.0000
+2025-12-27 11:43:35,380 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 36, iters 5004
+2025-12-27 11:43:35,479 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 36 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:35,479 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000381
+2025-12-27 11:43:36,679 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 36 / 40 acc 0.6130 uar 0.6402 f1 0.6056
+2025-12-27 11:43:37,946 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 36 / 40 acc 0.6155 uar 0.6583 f1 0.6218
+2025-12-27 11:43:42,343 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 37 loss CE:0.3867 mse:0.0105 consistent:0.0000
+2025-12-27 11:43:44,326 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 37, iters 5143
+2025-12-27 11:43:44,424 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 37 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:44,424 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000286
+2025-12-27 11:43:45,614 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 37 / 40 acc 0.6048 uar 0.6319 f1 0.5957
+2025-12-27 11:43:46,934 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 37 / 40 acc 0.6230 uar 0.6651 f1 0.6296
+2025-12-27 11:43:49,486 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 38 loss CE:0.3350 mse:0.0060 consistent:0.0000
+2025-12-27 11:43:53,283 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 38, iters 5282
+2025-12-27 11:43:53,382 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 38 / 40 	 Time Taken: 6 sec
+2025-12-27 11:43:53,382 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000190
+2025-12-27 11:43:54,570 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 38 / 40 acc 0.6080 uar 0.6332 f1 0.6004
+2025-12-27 11:43:55,836 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 38 / 40 acc 0.6227 uar 0.6606 f1 0.6292
+2025-12-27 11:43:56,625 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 39 loss CE:0.3488 mse:0.0084 consistent:0.0000
+2025-12-27 11:44:01,345 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 39 loss CE:0.1892 mse:0.0060 consistent:0.0000
+2025-12-27 11:44:02,366 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 39, iters 5421
+2025-12-27 11:44:02,463 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 39 / 40 	 Time Taken: 6 sec
+2025-12-27 11:44:02,463 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000095
+2025-12-27 11:44:03,680 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 39 / 40 acc 0.6092 uar 0.6342 f1 0.6010
+2025-12-27 11:44:04,966 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 39 / 40 acc 0.6212 uar 0.6630 f1 0.6270
+2025-12-27 11:44:08,655 - utils.logger2025-12-27-11.37.56 - INFO - Cur epoch 40 loss CE:0.1057 mse:0.0083 consistent:0.0000
+2025-12-27 11:44:11,579 - utils.logger2025-12-27-11.37.56 - INFO - saving the model at the end of epoch 40, iters 5560
+2025-12-27 11:44:11,678 - utils.logger2025-12-27-11.37.56 - INFO - End of training epoch 40 / 40 	 Time Taken: 6 sec
+2025-12-27 11:44:11,678 - utils.logger2025-12-27-11.37.56 - INFO - learning rate = 0.0000000
+2025-12-27 11:44:12,864 - utils.logger2025-12-27-11.37.56 - INFO - Val result of epoch 40 / 40 acc 0.6098 uar 0.6373 f1 0.6009
+2025-12-27 11:44:14,129 - utils.logger2025-12-27-11.37.56 - INFO - Tst result of epoch 40 / 40 acc 0.6203 uar 0.6661 f1 0.6261
+2025-12-27 11:44:14,129 - utils.logger2025-12-27-11.37.56 - INFO - Best eval epoch 32 found with uar 0.667260
+2025-12-27 11:44:14,129 - utils.logger2025-12-27-11.37.56 - INFO - Loading best model found on val set: epoch-32
+2025-12-27 11:44:16,635 - utils.logger2025-12-27-11.37.56 - INFO - Tst result acc 0.6272 uar 0.6673 f1 0.6332
