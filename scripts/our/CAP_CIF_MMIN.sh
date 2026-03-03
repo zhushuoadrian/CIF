@@ -13,9 +13,10 @@ cmd="python train_miss.py --dataset_mode=multimodal_miss --model=CIF_MMIN
 --AE_layers=256,128,64 --n_blocks=5 --num_thread=8 --corpus=IEMOCAP
 --ce_weight=1.0 --mse_weight=8.0 --consistent_weight=100
 --output_dim=4 --cls_layers=128,128 --dropout_rate=0.5
+--use_mamba --mamba_d_state=16 --mamba_d_conv=4 --mamba_expand=2 --mamba_dropout=0.1
 --niter=20 --niter_decay=20 --verbose --print_freq=10
 --batch_size=64 --lr=2e-4 --run_idx=$run_idx --weight_decay=1e-5
---name=CIF_MMIN_IEMOCAP --suffix=block_{n_blocks}_run_{gpu_ids}_{run_idx} --has_test
+--name=CIF_MMIN_IEMOCAP_Mamba --suffix=block_{n_blocks}_mamba_run_{gpu_ids}_{run_idx} --has_test
 --pretrained_path='checkpoints/CAP_utt_self_supervise_AVL_run1'
 --cvNo=$i --num_classes=4 --random_seed=336"
 
