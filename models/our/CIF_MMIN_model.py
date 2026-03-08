@@ -5,14 +5,14 @@ from collections import OrderedDict
 import torch.nn.functional as F
 from models.base_model import BaseModel
 from models.networks.fc import FcEncoder
-from models.networks.mamba_encoder import MambaEncoder
-
+# from models.networks.lstm import LSTMEncoder  # 注释掉旧的 LSTM
+from models.networks.mamba import MambaEncoder, CrossMambaEncoder  # <--- 导入新的普通Mamba和跨模态Mamba
+from models.networks.textcnn import TextCNN
 from models.networks.classifier import FcClassifier, Fusion
 from models.networks.autoencoder_2 import ResidualAE
 # from models.networks.autoencoder import ResidualAE
 from models.utils.config import OptConfig
 from models.utt_self_supervise_model import UttSelfSuperviseModel
-from models.utt_AVL_model import UttAVLModel
 
 
 class CIFMMINModel(BaseModel):
@@ -55,33 +55,28 @@ class CIFMMINModel(BaseModel):
         super().__init__(opt)
         # our expriment is on 10 fold setting, teacher is on 5 fold setting, the train set should match
         self.loss_names = ['CE', 'mse', 'consistent']
-        self.model_names = ['C', 'AE']  # , 'consistent']  # 六个模块的名称
+        self.model_names = ['C', 'AE', 'A', 'ConA', 'L', 'ConL', 'V', 'ConV']  # 六个模块的名称
 
-        # acoustic model
-        self.netA = MambaEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
-        self.model_names.append('A')
-        self.netConA = MambaEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
-        self.model_names.append('ConA')
-        # lexical model 文本
-        self.netL = MambaEncoder(opt.input_dim_l, opt.embd_size_l, embd_method="maxpool", bidirectional=True)
-        self.model_names.append('L')
-        self.netConL = MambaEncoder(opt.input_dim_l, opt.embd_size_l)
-        self.model_names.append('ConL')
-        # visual model
-        self.netV = MambaEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
-        self.model_names.append('V')
-        self.netConV = MambaEncoder(opt.input_dim_v, opt.embd_size_v, opt.embd_method_v)
-        self.model_names.append('ConV')
+        # 【创新点：文本引导的音频 Mamba】
+        self.netA = CrossMambaEncoder(opt.input_dim_a, opt.embd_size_a, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_a)
+        self.netConA = CrossMambaEncoder(opt.input_dim_a, opt.embd_size_a, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_a)
+        
+        # 文本模态自己作为引导者，依然使用原本的配置
+        self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l, dropout=0.5)
+        self.netConL = MambaEncoder(opt.input_dim_l, opt.embd_size_l, embd_method=opt.embd_method_a)
+        
+        # 【创新点：文本引导的视觉 Mamba】
+        self.netV = CrossMambaEncoder(opt.input_dim_v, opt.embd_size_v, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_v)
+        self.netConV = CrossMambaEncoder(opt.input_dim_v, opt.embd_size_v, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_v)
+        
         # # AE model  级联残差自编码器
-
         AE_layers = list(map(lambda x: int(x), opt.AE_layers.split(',')))
         AE_input_dim = opt.embd_size_a + opt.embd_size_v + opt.embd_size_l
         self.netAE = ResidualAE(AE_layers, opt.n_blocks, AE_input_dim, dropout=0, use_bn=False)
+        
         # 分类层
         cls_layers = list(map(lambda x: int(x), opt.cls_layers.split(',')))
-        cls_input_size = opt.embd_size_a + \
-                         opt.embd_size_v + \
-                         opt.embd_size_l
+        cls_input_size = opt.embd_size_a + opt.embd_size_v + opt.embd_size_l
         if self.opt.corpus_name != 'MOSI':
             self.netC = FcClassifier(cls_input_size, cls_layers, output_dim=opt.output_dim, dropout=opt.dropout_rate,
                                      use_bn=opt.bn)
@@ -95,7 +90,6 @@ class CIFMMINModel(BaseModel):
             else:
                 self.criterion_ce = torch.nn.MSELoss()
             self.criterion_mse = torch.nn.MSELoss()
-            # initialize optimizers; schedulers will be automatically created by function <BaseModel.setup>.
             paremeters = [{'params': getattr(self, 'net' + net).parameters()} for net in self.model_names]
             self.optimizer = torch.optim.Adam(paremeters, lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers.append(self.optimizer)
@@ -161,11 +155,6 @@ class CIFMMINModel(BaseModel):
         return opt
 
     def set_input(self, input):
-        """
-        Unpack input data from the dataloader and perform necessary pre-processing steps.
-        Parameters:
-            input (dict): include the data itself and its metadata information.
-        """
         self.acoustic = acoustic = input['A_feat'].float().to(self.device)
         self.lexical = lexical = input['L_feat'].float().to(self.device)
         self.visual = visual = input['V_feat'].float().to(self.device)
@@ -194,18 +183,18 @@ class CIFMMINModel(BaseModel):
 
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
-        # get utt level representattion
-        self.feat_A_miss = self.netA(self.A_miss)  # missing modaltity feature
+        # 【突破口】：使用可能缺失的文本 (L_miss) 去动态引导音视频，提升鲁棒性！
+        self.feat_A_miss = self.netA(self.A_miss, self.L_miss)
         self.feat_L_miss = self.netL(self.L_miss)
-        self.feat_V_miss = self.netV(self.V_miss)
+        self.feat_V_miss = self.netV(self.V_miss, self.L_miss)
+        
         # fusion miss
         self.feat_fusion_miss = torch.cat([self.feat_A_miss, self.feat_L_miss, self.feat_V_miss], dim=-1)
 
-        self.feat_A_consistent = self.netConA(self.A_miss)
+        self.feat_A_consistent = self.netConA(self.A_miss, self.L_miss)
         self.feat_L_consistent = self.netConL(self.L_miss)
-        self.feat_V_consistent = self.netConV(self.V_miss)
-        self.consistent_miss = torch.cat([self.feat_A_consistent, self.feat_L_consistent, self.feat_V_consistent],
-                                         dim=-1)
+        self.feat_V_consistent = self.netConV(self.V_miss, self.L_miss)
+        self.consistent_miss = torch.cat([self.feat_A_consistent, self.feat_L_consistent, self.feat_V_consistent], dim=-1)
 
         self.recon_fusion, _ = self.netAE(self.feat_fusion_miss, self.consistent_miss)
 
@@ -220,14 +209,15 @@ class CIFMMINModel(BaseModel):
         # for training 
         if self.isTrain:
             with torch.no_grad():
-                self.T_embd_A = self.pretrained_encoder.netA(self.A_reverse)
+                # 老师模型同样需要加上 L_reverse (文本) 作为先验引导
+                self.T_embd_A = self.pretrained_encoder.netA(self.A_reverse, self.L_reverse)
                 self.T_embd_L = self.pretrained_encoder.netL(self.L_reverse)
-                self.T_embd_V = self.pretrained_encoder.netV(self.V_reverse)
+                self.T_embd_V = self.pretrained_encoder.netV(self.V_reverse, self.L_reverse)
                 self.T_embds = torch.cat([self.T_embd_A, self.T_embd_L, self.T_embd_V], dim=-1)
 
-                embd_A_consistent = self.pretrained_encoder.netConA(self.acoustic)
+                embd_A_consistent = self.pretrained_encoder.netConA(self.acoustic, self.lexical)
                 embd_L_consistent = self.pretrained_encoder.netConL(self.lexical)
-                embd_V_consistent = self.pretrained_encoder.netConV(self.visual)
+                embd_V_consistent = self.pretrained_encoder.netConV(self.visual, self.lexical)
                 self.consistent = torch.cat([embd_A_consistent, embd_L_consistent, embd_V_consistent], dim=-1)
 
     def backward(self):
@@ -239,7 +229,6 @@ class CIFMMINModel(BaseModel):
         # 占位，共性特征损失
         self.loss_consistent = self.consistent_weight * self.criterion_mse(self.consistent, self.consistent_miss)
         # 综合损失
-        # loss = self.loss_CE + self.loss_mse
         loss = self.loss_CE + self.loss_mse + self.loss_consistent
         loss.backward()
         for model in self.model_names:
