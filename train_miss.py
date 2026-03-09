@@ -38,28 +38,34 @@ def eval(model, val_iter, is_save=False, phase='test', epoch=-1, mode=None):
         total_data += 1
         model.set_input(data)  # unpack data from dataset and apply preprocessing
         model.test()
+        
         if model.opt.corpus_name != 'MOSI':
             pred = model.pred.argmax(dim=1).detach().cpu().numpy()
         else:
             pred = model.pred.detach().cpu().numpy()
+            
         label = data['label']
-        miss_type = np.array(data['miss_type'])
-        # here the miss_type is same as the missing_index
-
         total_pred.append(pred)
         total_label.append(label)
-        total_miss_type.append(miss_type)
+
+        # ====== [关键修复 1]：兼容预训练阶段没有 miss_type 的情况 ======
+        if 'miss_type' in data:
+            miss_type = np.array(data['miss_type'])
+            total_miss_type.append(miss_type)
+        # ==========================================================
 
     # calculate metrics
     total_pred = np.concatenate(total_pred)
     total_label = np.concatenate(total_label)
-    total_miss_type = np.concatenate(total_miss_type)
+    
+    # 只有当收集到了 miss_type 时才进行拼接，避免空列表报错
+    if len(total_miss_type) > 0:
+        total_miss_type = np.concatenate(total_miss_type)
 
     if model.opt.corpus_name != 'MOSI':
         acc = accuracy_score(total_label, total_pred)
         uar = recall_score(total_label, total_pred, average='macro')
         f1 = f1_score(total_label, total_pred, average='macro')
-        # cm = confusion_matrix(total_label, total_pred)
 
         if is_save:
             # save test whole results
@@ -67,26 +73,26 @@ def eval(model, val_iter, is_save=False, phase='test', epoch=-1, mode=None):
             np.save(os.path.join(save_dir, '{}_pred.npy'.format(phase)), total_pred)
             np.save(os.path.join(save_dir, '{}_label.npy'.format(phase)), total_label)
 
-            # save part results
-            for part_name in ['azz', 'zvz', 'zzl', 'avz', 'azl', 'zvl']:
-                part_index = np.where(total_miss_type == part_name)
-                part_pred = total_pred[part_index]
-                part_label = total_label[part_index]
-                acc_part = accuracy_score(part_label, part_pred)
-                uar_part = recall_score(part_label, part_pred, average='macro')
-                f1_part = f1_score(part_label, part_pred, average='macro')
-                np.save(os.path.join(save_dir, '{}_{}_pred.npy'.format(phase, part_name)), part_pred)
-                np.save(os.path.join(save_dir, '{}_{}_label.npy'.format(phase, part_name)), part_label)
-                if phase == 'test':
-                    recorder_lookup[part_name].write_result_to_tsv({
-                        'acc': acc_part,
-                        'uar': uar_part,
-                        'f1': f1_part
-                    }, cvNo=opt.cvNo)
+            # save part results (只有当存在缺失类型时才保存部分结果)
+            if len(total_miss_type) > 0:
+                for part_name in ['azz', 'zvz', 'zzl', 'avz', 'azl', 'zvl']:
+                    part_index = np.where(total_miss_type == part_name)
+                    part_pred = total_pred[part_index]
+                    part_label = total_label[part_index]
+                    acc_part = accuracy_score(part_label, part_pred)
+                    uar_part = recall_score(part_label, part_pred, average='macro')
+                    f1_part = f1_score(part_label, part_pred, average='macro')
+                    np.save(os.path.join(save_dir, '{}_{}_pred.npy'.format(phase, part_name)), part_pred)
+                    np.save(os.path.join(save_dir, '{}_{}_label.npy'.format(phase, part_name)), part_label)
+                    if phase == 'test':
+                        recorder_lookup[part_name].write_result_to_tsv({
+                            'acc': acc_part,
+                            'uar': uar_part,
+                            'f1': f1_part
+                        }, cvNo=opt.cvNo)
 
         model.train()
-
-        return acc, uar, f1  # , cm
+        return acc, uar, f1
 
     else:
         mae, corr, f_score = calc_metrics(total_label, total_pred, mode)
@@ -97,22 +103,23 @@ def eval(model, val_iter, is_save=False, phase='test', epoch=-1, mode=None):
             np.save(os.path.join(save_dir, '{}_pred.npy'.format(phase)), total_pred)
             np.save(os.path.join(save_dir, '{}_label.npy'.format(phase)), total_label)
 
-            for part_name in ['azz', 'zvz', 'zzl', 'avz', 'azl', 'zvl']:
-                part_index = np.where(total_miss_type == part_name)
-                part_pred = total_pred[part_index]
-                part_label = total_label[part_index]
-                mae_part, corr_part, f1_part = calc_metrics(part_label, part_pred, mode)
-                np.save(os.path.join(save_dir, '{}_{}_pred.npy'.format(phase, part_name)), part_pred)
-                np.save(os.path.join(save_dir, '{}_{}_label.npy'.format(phase, part_name)), part_label)
-                if phase == 'test':
-                    recorder_lookup[part_name].write_result_to_tsv({
-                        'mae': mae_part,
-                        'corr': corr_part,
-                        'f1': f1_part
-                    }, cvNo=opt.cvNo)
+            # 只有当存在缺失类型时才保存部分结果
+            if len(total_miss_type) > 0:
+                for part_name in ['azz', 'zvz', 'zzl', 'avz', 'azl', 'zvl']:
+                    part_index = np.where(total_miss_type == part_name)
+                    part_pred = total_pred[part_index]
+                    part_label = total_label[part_index]
+                    mae_part, corr_part, f1_part = calc_metrics(part_label, part_pred, mode)
+                    np.save(os.path.join(save_dir, '{}_{}_pred.npy'.format(phase, part_name)), part_pred)
+                    np.save(os.path.join(save_dir, '{}_{}_label.npy'.format(phase, part_name)), part_label)
+                    if phase == 'test':
+                        recorder_lookup[part_name].write_result_to_tsv({
+                            'mae': mae_part,
+                            'corr': corr_part,
+                            'f1': f1_part
+                        }, cvNo=opt.cvNo)
 
         model.train()
-
         return mae, corr, f_score
 
 
@@ -137,7 +144,6 @@ def calc_metrics(y_true, y_pred, mode=None, to_print=False):
     Metric scheme adapted from:
     https://github.com/yaohungt/Multimodal-Transformer/blob/master/src/eval_metrics.py
     """
-
     test_preds = y_pred.squeeze(1)
     test_truth = y_true
 
@@ -153,9 +159,6 @@ def calc_metrics(y_true, y_pred, mode=None, to_print=False):
 def multiclass_acc(preds, truths):
     """
     Compute the multiclass accuracy w.r.t. groundtruth
-    :param preds: Float array representing the predictions, dimension (N,)
-    :param truths: Float/int array representing the groundtruth classes, dimension (N,)
-    :return: Classification accuracy
     """
     return np.sum(np.round(preds) == np.round(truths)) / float(len(truths))
 
@@ -163,6 +166,7 @@ def multiclass_acc(preds, truths):
 if __name__ == '__main__':
     opt = Options().parse()  # get training options
     # set_random_seed(opt.random_seed)    # Setting random seed
+    
     logger_path = os.path.join(opt.log_dir, opt.name, str(opt.cvNo))  # get logger path
     if not os.path.exists(logger_path):  # make sure logger path exists
         os.mkdir(logger_path)
@@ -190,12 +194,16 @@ if __name__ == '__main__':
     suffix = '_'.join([opt.model, opt.dataset_mode])  # get logger suffix
     logger = get_logger(logger_path, suffix)  # get logger
 
-    if opt.has_test:  # create a dataset given opt.dataset_mode and other options
+    # ====== [关键修复 2]：兼容没有传入 --has_test 的情况 ======
+    if opt.has_test:  
         dataset, val_dataset, tst_dataset = create_dataset_with_args(opt, set_name=['trn', 'val', 'tst'])
+        tst_dataset_size = len(tst_dataset)
     else:
         dataset, val_dataset = create_dataset_with_args(opt, set_name=['trn', 'val'])
-    dataset_size = len(dataset)  # get the number of images in the dataset.
-    tst_dataset_size = len(tst_dataset)
+        tst_dataset_size = 0  # 如果没开 test 模式，大小设为 0
+    # ==========================================================
+    
+    dataset_size = len(dataset)
     logger.info('The number of training samples = %d' % dataset_size)
     logger.info('The number of testing samples = %d' % tst_dataset_size)
 
@@ -205,35 +213,34 @@ if __name__ == '__main__':
     best_eval_epoch = -1  # record the best eval epoch
     best_eval_acc, best_eval_uar, best_eval_f1, best_eval_corr, best_eval_mae = 0, 0, 0, 0, 10
 
-    for epoch in range(opt.epoch_count,
-                       opt.niter + opt.niter_decay + 1):  # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
-        epoch_start_time = time.time()  # timer for entire epoch
-        iter_data_time = time.time()  # timer for data loading per iteration
-        epoch_iter = 0  # the number of training iterations in current epoch, reset to 0 every epoch
+    for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):  
+        epoch_start_time = time.time()  
+        iter_data_time = time.time()  
+        epoch_iter = 0  
         loss_add = True
 
-        for i, data in enumerate(dataset):  # inner loop within one epoch
-            iter_start_time = time.time()  # timer for computation per iteration
-            total_iters += 1  # opt.batch_size
+        for i, data in enumerate(dataset):  
+            iter_start_time = time.time()  
+            total_iters += 1  
             epoch_iter += opt.batch_size
-            model.set_input(data)  # unpack data from dataset and apply preprocessing
-            model.optimize_parameters(epoch)  # calculate loss functions, get gradients, update network weights
+            model.set_input(data)  
+            model.optimize_parameters(epoch)  
 
-            if total_iters % opt.print_freq == 0:  # print training losses and save logging information to the disk
+            if total_iters % opt.print_freq == 0:  
                 losses = model.get_current_losses()
                 t_comp = (time.time() - iter_start_time) / opt.batch_size
                 logger.info('Cur epoch {}'.format(epoch) + ' loss ' +
                             ' '.join(map(lambda x: '{}:{{{}:.4f}}'.format(x, x), model.loss_names)).format(**losses))
             iter_data_time = time.time()
 
-        if epoch % opt.save_epoch_freq == 0:  # cache our model every <save_epoch_freq> epochs
+        if epoch % opt.save_epoch_freq == 0:  
             logger.info('saving the model at the end of epoch %d, iters %d' % (epoch, total_iters))
             model.save_networks('latest')
             model.save_networks(epoch)
 
         logger.info('End of training epoch %d / %d \t Time Taken: %d sec' % (
             epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
-        model.update_learning_rate(logger)  # update learning rates at the end of every epoch.
+        model.update_learning_rate(logger)  
 
         # eval
         if model.opt.corpus_name != 'MOSI':
@@ -244,7 +251,6 @@ if __name__ == '__main__':
             mae, corr, f1 = eval(model, val_dataset)
             logger.info('Val result of epoch %d / %d mae %.4f corr %.4f f1 %.4f' % (
                 epoch, opt.niter + opt.niter_decay, mae, corr, f1))
-        # logger.info('\n{}'.format(cm))
 
         # show test result for debugging
         if opt.has_test and opt.verbose:
@@ -256,8 +262,6 @@ if __name__ == '__main__':
                 mae, corr, f1 = eval(model, tst_dataset)
                 logger.info('Tst result of epoch %d / %d mae %.4f corr %.4f f1 %.4f' % (
                 epoch, opt.niter + opt.niter_decay, mae, corr, f1))
-
-            # logger.info('\n{}'.format(cm))
 
         # record epoch with best result
         if opt.corpus_name == 'IEMOCAP':
@@ -288,15 +292,16 @@ if __name__ == '__main__':
             raise ValueError(f'corpus name must be IEMOCAP, CMU-MOSI, or MSP, but got {opt.corpus_name}')
 
     logger.info('Best eval epoch %d found with %s %f' % (best_eval_epoch, select_metric, best_metric))
+    
     # test
     if opt.has_test:
         logger.info('Loading best model found on val set: epoch-%d' % best_eval_epoch)
         model.load_networks(best_eval_epoch)
         _ = eval(model, val_dataset, is_save=True, phase='val', epoch=best_eval_epoch)
+        
         if model.opt.corpus_name != 'MOSI':
             acc, uar, f1 = eval(model, tst_dataset, is_save=True, phase='test', epoch=best_eval_epoch)
             logger.info('Tst result acc %.4f uar %.4f f1 %.4f' % (acc, uar, f1))
-            # logger.info('\n{}'.format(cm))
             recorder_lookup['total'].write_result_to_tsv({
                 'acc': acc,
                 'uar': uar,

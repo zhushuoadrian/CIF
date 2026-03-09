@@ -4,7 +4,7 @@ import json
 import torch.nn.functional as F
 from models.base_model import BaseModel
 from models.networks.fc import FcEncoder
-from models.networks.mamba import MambaEncoder, CrossMambaEncoder # <--- 引入创新模块
+from models.networks.lstm import LSTMEncoder  # <--- 已经为您改回标准的 LSTM
 from models.networks.textcnn import TextCNN
 from models.networks.classifier import FcClassifier, Fusion
 from models.networks.shared import SharedEncoder
@@ -12,7 +12,6 @@ from models.utils import CMD
 from einops import rearrange, repeat, reduce
 from torch import einsum
 
-# ... (保持原有的 masked_mean, matrix_diag, log, l2norm 函数不变，由于篇幅我写核心的 __init__ 和 forward)
 def masked_mean(t, mask, dim=1, eps=1e-6):
     t = t.masked_fill(~mask, 0.)
     return t.sum(dim=dim) / mask.sum(dim=dim).clamp(min=eps)
@@ -43,7 +42,7 @@ class UttSelfSuperviseModel(BaseModel):
         parser.add_argument('--cls_layers', type=str, default='128,128')
         parser.add_argument('--dropout_rate', type=float, default=0.3)
         parser.add_argument('--bn', action='store_true')
-        parser.add_argument('--modality', type=str)
+        parser.add_argument('--modality', type=str, default='AVL')
         parser.add_argument('--image_dir', type=str, default='./consistent_image')
         return parser
 
@@ -56,9 +55,11 @@ class UttSelfSuperviseModel(BaseModel):
         cls_input_size = opt.embd_size_a * int("A" in self.modality) + \
                          opt.embd_size_v * int("V" in self.modality) + \
                          opt.embd_size_l * int("L" in self.modality)
+        
         self.netSharedV = SharedEncoder(opt)
         self.netSharedA = SharedEncoder(opt)
         self.netSharedT = SharedEncoder(opt)
+        
         if self.opt.corpus_name != 'MOSI':
             self.netC = FcClassifier(cls_input_size, cls_layers, output_dim=opt.output_dim, dropout=opt.dropout_rate, use_bn=opt.bn)
         else:
@@ -67,23 +68,21 @@ class UttSelfSuperviseModel(BaseModel):
         self.temperature = torch.nn.Parameter(torch.tensor(1.))
         self.batch_size = opt.batch_size
         
-        # 音频使用文本引导的 CrossMamba
+        # [关键修复]：全部改回纯正的 LSTM
         if 'A' in self.modality:
             self.model_names.extend(['A', 'ConA'])
-            self.netA = CrossMambaEncoder(opt.input_dim_a, opt.embd_size_a, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_a)
-            self.netConA = CrossMambaEncoder(opt.input_dim_a, opt.embd_size_a, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_a)
+            self.netA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
+            self.netConA = LSTMEncoder(opt.input_dim_a, opt.embd_size_a, embd_method=opt.embd_method_a)
 
-        # 文本自己作为锚点，使用单模态 Mamba / CNN
         if 'L' in self.modality:
             self.model_names.extend(['L', 'ConL'])
             self.netL = TextCNN(opt.input_dim_l, opt.embd_size_l)
-            self.netConL = MambaEncoder(opt.input_dim_l, opt.embd_size_l, embd_method=opt.embd_method_a)
+            self.netConL = LSTMEncoder(opt.input_dim_l, opt.embd_size_l)
 
-        # 视频使用文本引导的 CrossMamba
         if 'V' in self.modality:
             self.model_names.extend(['V', 'ConV'])
-            self.netV = CrossMambaEncoder(opt.input_dim_v, opt.embd_size_v, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_v)
-            self.netConV = CrossMambaEncoder(opt.input_dim_v, opt.embd_size_v, guide_dim=opt.input_dim_l, embd_method=opt.embd_method_v)
+            self.netV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, embd_method=opt.embd_method_v)
+            self.netConV = LSTMEncoder(opt.input_dim_v, opt.embd_size_v, embd_method=opt.embd_method_v)
 
         if self.isTrain:
             self.criterion_ce = torch.nn.CrossEntropyLoss() if self.opt.corpus_name != 'MOSI' else torch.nn.MSELoss()
@@ -104,10 +103,11 @@ class UttSelfSuperviseModel(BaseModel):
 
     def forward(self):
         final_embd, final_shared = [], []
-        # 注意这里：A 和 V 需要 lexical (文本) 作为 guide_x 输入
+        
+        # [关键修复]：去除多余的 lexical 引导参数，恢复 LSTM 单一输入
         if 'A' in self.modality:
-            self.feat_A = self.netA(self.acoustic, self.lexical)
-            feat_ConA = self.netConA(self.acoustic, self.lexical)
+            self.feat_A = self.netA(self.acoustic)
+            feat_ConA = self.netConA(self.acoustic)
             self.feat_shared_A = self.netSharedA(feat_ConA)
             final_embd.append(self.feat_A)
             final_shared.append(feat_ConA)
@@ -120,8 +120,8 @@ class UttSelfSuperviseModel(BaseModel):
             final_shared.append(feat_ConL)
 
         if 'V' in self.modality:
-            self.feat_V = self.netV(self.visual, self.lexical)
-            feat_ConV = self.netConV(self.visual, self.lexical)
+            self.feat_V = self.netV(self.visual)
+            feat_ConV = self.netConV(self.visual)
             self.feat_shared_V = self.netSharedV(feat_ConV)
             final_embd.append(self.feat_V)
             final_shared.append(feat_ConV)
