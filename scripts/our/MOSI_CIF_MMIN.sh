@@ -2,8 +2,8 @@
 set -e
 run_idx=$1
 gpu=$2
+
 for i in {1..10}; do
-# 注意：这里是 CIF_MMIN 模型，并且带上了 --has_test
 
 cmd="python train_miss.py --dataset_mode=multimodal_miss --model=CIF_MMIN \
 --log_dir=./logs --checkpoints_dir=./checkpoints --gpu_ids=$gpu --image_dir=./shared_image \
@@ -12,20 +12,18 @@ cmd="python train_miss.py --dataset_mode=multimodal_miss --model=CIF_MMIN \
 --L_type=bert_large --input_dim_l=768 --embd_size_l=128 \
 --AE_layers=256,128,64 --n_blocks=5 --num_thread=8 --corpus=MOSI --corpus_name=MOSI \
 --ce_weight=1.0 --mse_weight=8.0 --consistent_weight=100 \
---output_dim=1 --cls_layers=128,64 --dropout_rate=0.5 \
+--output_dim=1 --cls_layers=128,64 \
+--dropout_rate=0.5 \
 --niter=20 --niter_decay=20 --verbose --print_freq=10 \
 --batch_size=64 --lr=2e-4 --run_idx=$run_idx --weight_decay=1e-5 \
+--mamba_d_state=32 \
 --name=CIF_MMIN_MOSI --suffix=block_5_run_${gpu}_${run_idx} --has_test \
 --pretrained_path='checkpoints/MOSI_utt_self_supervise_AVL_run1' \
 --cvNo=$i --num_classes=1 --random_seed=336"
+
 echo -e "\n-------------------------------------------------------------------------------------"
-
 echo "Execute command: $cmd"
-
 echo -e "-------------------------------------------------------------------------------------\n"
-
 eval $cmd
-
-
 
 done
