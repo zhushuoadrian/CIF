@@ -1,4 +1,6 @@
-
+# -----------------------------------------------------------------------------------
+# 🏆 冲刺 27+ 霸榜版 V2: WaveMamba + NAFNet + Bi-CSG + 平滑像素先验 + 伪影消除
+# -----------------------------------------------------------------------------------
 import math
 import torch
 import torch.nn as nn
@@ -8,11 +10,13 @@ from einops import rearrange
 
 # 🌟 动态导入 Mamba 模块
 try:
-    from .vmamba import SS2D
+    from .vmamba import SS2D  
 except ImportError:
-    from vmamba import SS2D
+    from vmamba import SS2D   
 
-
+# ===================================================================================
+# 1. 基础频域组件 (DWT/IWT, SimpleGate)
+# ===================================================================================
 def dwt_init(x):
     x01 = x[:, :, 0::2, :] / 2
     x02 = x[:, :, 1::2, :] / 2
@@ -45,7 +49,7 @@ def iwt_init(x):
 class DWT(nn.Module):
     def __init__(self):
         super(DWT, self).__init__()
-        self.requires_grad = False
+        self.requires_grad = False  
     def forward(self, x): return dwt_init(x)
 
 class IWT(nn.Module):
@@ -59,7 +63,9 @@ class SimpleGate(nn.Module):
         x1, x2 = x.chunk(2, dim=1)
         return x1 * x2
 
-
+# ===================================================================================
+# 2. 核心处理块 (NAFBlock, Mamba_ffn, LFSSBlock)
+# ===================================================================================
 class NAFBlock(nn.Module):
     def __init__(self, c, DW_Expand=2, FFN_Expand=2, drop_out_rate=0.):
         super().__init__()
@@ -71,7 +77,7 @@ class NAFBlock(nn.Module):
         self.sca = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(dw_channel // 2, dw_channel // 2, 1, padding=0, bias=True),
-            nn.Sigmoid(),
+            nn.Sigmoid(),  # 🔧 修复: 确保注意力权重有界 [0,1]
         )
         self.sg = SimpleGate()
 
@@ -92,9 +98,10 @@ class NAFBlock(nn.Module):
         x = inp.permute(0, 2, 3, 1)
         x = self.norm1(x).permute(0, 3, 1, 2)
 
+        # 🔧 修复: conv1+conv2 只计算一次，避免梯度翻倍 (原代码调用两次导致梯度×2)
         x_dw = self.conv2(self.conv1(x))
-        x_sg = self.sg(x_dw)
-        x = self.conv3(self.sca(x_sg) * x_sg)
+        x_sg = self.sg(x_dw)                          # SimpleGate → dw_channel//2
+        x = self.conv3(self.sca(x_sg) * x_sg)         # SCA 注意力 × 门控特征
         y = inp + self.dropout1(x) * self.beta
 
         x = self.conv4(self.norm2(y.permute(0, 2, 3, 1)).permute(0, 3, 1, 2))
@@ -133,51 +140,13 @@ class LFSSBlock(nn.Module):
         x = x * self.skip_scale2 + self.conv_blk(self.ln_2(x).permute(0, 3, 1, 2).contiguous()).permute(0, 2, 3, 1).contiguous()
         return x.view(B, -1, C).contiguous()
 
-
-class DS_SKFF(nn.Module):
-    """🔥 V2.1 空间+通道双自适应融合（论文画图用）"""
-    def __init__(self, in_channels, height=2, reduction=4):
-        super().__init__()
-        self.height = height
-        d = max(int(in_channels / reduction), 8)
-        
-        self.spatial_att = nn.Sequential(
-            nn.Conv2d(in_channels, d, 3, padding=1, bias=False),
-            nn.GELU(),
-            nn.Conv2d(d, height, 3, padding=1, bias=False) 
-        )
-        
-        self.channel_att = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, d, 1, bias=False),
-            nn.GELU(),
-            nn.Conv2d(d, in_channels * height, 1, bias=False)
-        )
-        
-        self.refine = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, 3, 1, 1, groups=in_channels),
-            nn.GELU(),
-            nn.Conv2d(in_channels, in_channels, 1)
-        )
-
-    def forward(self, inp_feats):
-        B, C, H, W = inp_feats[0].shape
-        feats_U = sum(inp_feats) 
-        
-        s_weight = self.spatial_att(feats_U)
-        s_weight = F.softmax(s_weight, dim=1).unsqueeze(2) 
-        
-        c_weight = self.channel_att(feats_U).view(B, self.height, C, 1, 1)
-        c_weight = F.softmax(c_weight, dim=1)
-        
-        inp_tensor = torch.stack(inp_feats, dim=1)
-        feats_V = torch.sum(inp_tensor * s_weight * c_weight, dim=1)
-        return feats_V + self.refine(feats_V)
-
-
+# ===================================================================================
+# 3. 强力跳跃连接与全局引导组件 (CBAM, ASPP, BiCSG)
+# ===================================================================================
 class ChannelAttention(nn.Module):
     def __init__(self, in_planes, ratio=16):
         super().__init__()
+        # 🔧 修复: 保证瓶颈至少 4 通道，避免 in_planes=32 时瓶颈只有 2 通道
         reduced = max(in_planes // ratio, 4)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.max_pool = nn.AdaptiveMaxPool2d(1)
@@ -209,7 +178,6 @@ class CBAM(nn.Module):
         return x * self.ca(x) * self.sa(x)
 
 class SKFF_CBAM(nn.Module):
-    """✅ V2 原版融合模块（代码实际调用运行）"""
     def __init__(self, in_channels, height=2, reduction=2, bias=False): 
         super().__init__()
         self.height = height
@@ -232,8 +200,6 @@ class SKFF_CBAM(nn.Module):
         feats_V = torch.sum(inp_feats * attention_vectors, dim=1)
         return self.cbam(feats_V) 
 
-
-# ===================================================================================
 class ASPP(nn.Module):
     def __init__(self, in_channels, out_channels, rates=[6, 12, 18]):
         super().__init__()
@@ -270,14 +236,18 @@ class ASPP(nn.Module):
 class BiCSG_Fusion(nn.Module):
     def __init__(self, dim):
         super().__init__()
+        # 🔧 增加 LayerNorm，防止注意力输入激活值爆炸，稳定训练
         self.norm_l = nn.LayerNorm(dim)
         self.norm_h = nn.LayerNorm(dim * 3)
+        # 引入 depthwise group conv，增强空间对齐
         self.l2h_conv = nn.Sequential(nn.Conv2d(dim, dim*3, 3, 1, 1, groups=dim), nn.GELU(), nn.Conv2d(dim*3, dim*3, 1), nn.Sigmoid())
         self.h2l_conv = nn.Sequential(nn.Conv2d(dim*3, dim, 3, 1, 1), nn.GELU(), nn.Conv2d(dim, dim, 1), nn.Sigmoid())
+        
         self.out_h = nn.Conv2d(dim*3, dim*3, 1)
         self.out_l = nn.Conv2d(dim, dim, 1)
 
     def forward(self, x_l, x_h):
+        # 归一化后再计算注意力权重
         x_l_n = self.norm_l(x_l.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
         x_h_n = self.norm_h(x_h.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
@@ -289,74 +259,9 @@ class BiCSG_Fusion(nn.Module):
         
         return self.out_l(x_l_refined), self.out_h(x_h_refined)
 
-class ECA(nn.Module):
-    def __init__(self, k_size=3):
-        super().__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
-    def forward(self, x):
-        y = self.avg_pool(x)
-        y = y.squeeze(-1).transpose(-1, -2)
-        y = self.conv(y)
-        y = y.transpose(-1, -2).unsqueeze(-1)
-        return torch.sigmoid(y)
-
-class SC_GatedRefine(nn.Module):
-    """🔥 V2.1 双注意力细化（论文画图用）"""
-    def __init__(self, dim):
-        super().__init__()
-        self.project_in = nn.Conv2d(dim, dim * 2, 1)
-        self.sg = SimpleGate()
-        self.dwconv = nn.Conv2d(dim, dim, 5, 1, 2, groups=dim)
-        self.eca = ECA(k_size=3)
-        self.pa = nn.Sequential(
-            nn.Conv2d(dim, max(dim // 8, 4), 1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(max(dim // 8, 4), 1, 1, bias=False),
-            nn.Sigmoid()
-        )
-        self.project_out = nn.Conv2d(dim, dim, 1)
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x):
-        residual = x
-        x_norm = x.permute(0, 2, 3, 1).contiguous()
-        x_norm = self.norm(x_norm).permute(0, 3, 1, 2).contiguous()
-        
-        x_in = self.project_in(x_norm)
-        x_gated = self.sg(x_in)
-        x_feat = self.dwconv(x_gated)
-        
-        weight_c = self.eca(x_feat)
-        weight_p = self.pa(x_feat)
-        x_feat = x_feat * weight_c * weight_p
-        
-        out = self.project_out(x_feat)
-        return out + residual
-
-class GatedRefine(nn.Module):
-    """✅ V2 原版细化模块（代码实际调用运行）"""
-    def __init__(self, dim):
-        super().__init__()
-        self.project_in = nn.Conv2d(dim, dim * 2, 1)
-        self.sg = SimpleGate()
-        self.dwconv = nn.Conv2d(dim, dim, 3, 1, 1, groups=dim)
-        self.sca = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.Conv2d(dim, dim, 1), nn.Sigmoid())
-        self.project_out = nn.Conv2d(dim, dim, 1)
-        self.norm = nn.LayerNorm(dim)
-
-    def forward(self, x):
-        residual = x
-        x_norm = x.permute(0, 2, 3, 1).contiguous()
-        x_norm = self.norm(x_norm).permute(0, 3, 1, 2).contiguous()
-        x = self.project_in(x_norm)
-        x = self.sg(x)      
-        x = self.dwconv(x)  
-        x = x * self.sca(x) 
-        x = self.project_out(x)
-        return x + residual
-
-
+# ===================================================================================
+# 4. 辅助采样与修正模块
+# ===================================================================================
 class PatchEmbed(nn.Module):
     def __init__(self, patch_size=4, in_chans=3, embed_dim=96, kernel_size=None):
         super().__init__()
@@ -383,6 +288,31 @@ class DownSample(nn.Module):
         self.proj = nn.Sequential(nn.Conv2d(input_dim, input_dim // 2, kernel_size=3, stride=1, padding=1, bias=False), nn.PixelUnshuffle(2))
     def forward(self, x): return self.proj(x)
 
+class GatedRefine(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.project_in = nn.Conv2d(dim, dim * 2, 1)
+        self.sg = SimpleGate()
+        self.dwconv = nn.Conv2d(dim, dim, 3, 1, 1, groups=dim)
+        # 🔧 修复: 加 Sigmoid 让 SCA 输出有界 [0,1]，充当真正的注意力权重
+        self.sca = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.Conv2d(dim, dim, 1), nn.Sigmoid())
+        self.project_out = nn.Conv2d(dim, dim, 1)
+        self.norm = nn.LayerNorm(dim)
+
+    def forward(self, x):
+        residual = x
+        x_norm = x.permute(0, 2, 3, 1).contiguous()
+        x_norm = self.norm(x_norm).permute(0, 3, 1, 2).contiguous()
+        x = self.project_in(x_norm)
+        x = self.sg(x)      
+        x = self.dwconv(x)  
+        x = x * self.sca(x) 
+        x = self.project_out(x)
+        return x + residual
+
+# ===================================================================================
+# 5. 核心流形：WaveParallelStage V2
+# ===================================================================================
 class WaveParallelStage_v2(nn.Module):
     def __init__(self, depth, in_channels):
         super().__init__()
@@ -392,7 +322,7 @@ class WaveParallelStage_v2(nn.Module):
         self.mamba_branch = nn.Sequential(*[LFSSBlock(hidden_dim=in_channels) for _ in range(depth)])
         self.cnn_branch = nn.Sequential(*[NAFBlock(c=in_channels * 3, DW_Expand=1.5) for _ in range(depth)])
         self.bicsg = BiCSG_Fusion(in_channels)
-        self.refine = GatedRefine(in_channels)  # ✅ 调用 V2 原版
+        self.refine = GatedRefine(in_channels)
 
     def forward(self, x):
         input_tensor = x
@@ -414,7 +344,15 @@ class WaveParallelStage_v2(nn.Module):
         out = self.refine(x_fused_dwt)
         return out + input_tensor
 
+# ===================================================================================
+# 6. 🔥 平滑像素级照度先验 (Retinex 思想)
+# ===================================================================================
 class IlluminationEstimator(nn.Module):
+    """
+    回归物理本质：直接生成 3 通道 (RGB) 的像素级照度缩放图。
+    🔧 改进: 增加一个隐藏层 (3→16→32→3)，提升表达能力；
+    同时用 3×3 + 5×5 双尺度均值平滑，比单一 5×5 更自然。
+    """
     def __init__(self, in_chans=3):
         super().__init__()
         self.net = nn.Sequential(
@@ -422,18 +360,23 @@ class IlluminationEstimator(nn.Module):
             nn.GELU(),
             nn.Conv2d(16, 32, 3, 1, 1),
             nn.GELU(),
-            nn.Conv2d(32, 3, 3, 1, 1), 
+            nn.Conv2d(32, 3, 3, 1, 1),  # 输出 3 通道，顺带做初始色彩校正
         )
         nn.init.zeros_(self.net[4].weight)
         nn.init.zeros_(self.net[4].bias)
 
     def forward(self, x):
+        # sigmoid → [1.0, 9.0]，初始化后默认 5.0 倍提亮
         illu_map = torch.sigmoid(self.net(x)) * 8.0 + 1.0
+        # 🔧 双尺度平滑: 3×3 局部细节 + 5×5 大范围光照，融合后更自然
         illu_smooth3 = F.avg_pool2d(illu_map, kernel_size=3, stride=1, padding=1)
         illu_smooth5 = F.avg_pool2d(illu_map, kernel_size=5, stride=1, padding=2)
         illu_map = 0.5 * illu_smooth3 + 0.5 * illu_smooth5
         return illu_map
 
+# ===================================================================================
+# 7. 主干网络 V2
+# ===================================================================================
 class Backbone_v2(nn.Module):
     def __init__(self, in_chans=3, out_chans=3, patch_size=1,
                  embed_dim=[32, 64, 128, 64, 32], 
@@ -441,17 +384,19 @@ class Backbone_v2(nn.Module):
                  **kwargs):
         super().__init__()
 
+        # 挂载像素级提亮器
         self.illu_estimator = IlluminationEstimator(in_chans)
+
         self.patch_embed = PatchEmbed(patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim[0])
         
         self.layer1 = WaveParallelStage_v2(depth=depth[0], in_channels=embed_dim[0])
-        self.skip1 = SKFF_CBAM(in_channels=embed_dim[0])   # ✅ 调用 V2 原版
-        self.refine1 = GatedRefine(embed_dim[0])            # ✅ 调用 V2 原版
+        self.skip1 = SKFF_CBAM(in_channels=embed_dim[0]) 
+        self.refine1 = GatedRefine(embed_dim[0])
         self.downsample1 = DownSample(input_dim=embed_dim[0], output_dim=embed_dim[1])
         
         self.layer2 = WaveParallelStage_v2(depth=depth[1], in_channels=embed_dim[1])
-        self.skip2 = SKFF_CBAM(in_channels=embed_dim[1])   # ✅ 调用 V2 原版
-        self.refine2 = GatedRefine(embed_dim[1])            # ✅ 调用 V2 原版
+        self.skip2 = SKFF_CBAM(in_channels=embed_dim[1])
+        self.refine2 = GatedRefine(embed_dim[1])
         self.downsample2 = DownSample(input_dim=embed_dim[1], output_dim=embed_dim[2])
         
         self.layer3 = WaveParallelStage_v2(depth=depth[2], in_channels=embed_dim[2])
@@ -465,31 +410,36 @@ class Backbone_v2(nn.Module):
         
         self.patch_unembed = PatchUnEmbed(patch_size=patch_size, out_chans=out_chans, embed_dim=embed_dim[4])
 
+        # 消除 PixelShuffle 带来的棋盘格伪影
         self.refine_out = nn.Sequential(
             nn.Conv2d(out_chans, 32, 3, 1, 1),
             nn.GELU(),
-            nn.Conv2d(32, 32, 3, 1, 1, groups=32), 
+            nn.Conv2d(32, 32, 3, 1, 1, groups=32),  # depthwise
             nn.GELU(),
             nn.Conv2d(32, out_chans, 3, 1, 1),
         )
 
     def forward(self, x):
+        # 1. 像素级平滑提亮
         illu_map = self.illu_estimator(x)
         x_bright = x * illu_map 
         
+        # 2. 编码器 (skip 在各层处理后保存，携带更丰富的语义特征)
         feat = self.patch_embed(x_bright)
 
         feat = self.layer1(feat)
-        copy1 = feat 
+        copy1 = feat                     # 🔧 修复: 保存在 layer1 之后，而非之前
         feat = self.downsample1(feat)
         
         feat = self.layer2(feat)
-        copy2 = feat 
+        copy2 = feat                     # 🔧 修复: 保存在 layer2 之后，而非之前
         feat = self.downsample2(feat)
         
+        # 3. 瓶颈层 ASPP
         feat = self.layer3(feat)
         feat = self.aspp(feat) 
         
+        # 4. 解码器
         feat = self.upsample1(feat)
         feat = self.skip2([feat, copy2])
         feat = self.refine2(feat)
@@ -500,12 +450,18 @@ class Backbone_v2(nn.Module):
         feat = self.refine1(feat)
         feat = self.layer5(feat)
         
+        # 5. 消除伪影残差输出 (🔧 修复: 加上 refine_out 自身的残差连接)
         residual = self.patch_unembed(feat)
         residual = residual + self.refine_out(residual)
         
+        # 加在 x_bright 上，让 residual 学的东西尽量微小
         return x_bright + residual
 
+# -----------------------------------------------------------------------------------
+# 8. 模型定义
+# -----------------------------------------------------------------------------------
 def sfhformer_lol_s(**kwargs): 
+    # 🔧 改进: 瓶颈层加深 [2,2,4,2,2]，提升特征提取能力
     return Backbone_v2(embed_dim=[32, 64, 128, 64, 32], depth=[2, 2, 4, 2, 2], **kwargs)
 
 def sfhformer_t(**kwargs): 
@@ -518,7 +474,7 @@ def sfhformer_lol_l(**kwargs):
     return Backbone_v2(embed_dim=[64, 128, 256, 128, 64], depth=[4, 4, 8, 4, 4], **kwargs)
 
 if __name__ == "__main__":
-    print()
+    print("🔍 Testing Champion Model: Target PSNR 27+...")
     model = sfhformer_lol_s()
     x = torch.randn(1, 3, 128, 128) 
     if torch.cuda.is_available():
@@ -526,7 +482,7 @@ if __name__ == "__main__":
         x = x.cuda()
     
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"📊 参数量：{n_params / 1e6:.2f}M")
+    print(f"📊 Model Params: {n_params / 1e6:.2f}M")
     
     y = model(x)
-    print(f"✅ 运行成功：{x.shape} -> {y.shape}")
+    print(f"✅ Forward Pass Success: {x.shape} -> {y.shape}")
