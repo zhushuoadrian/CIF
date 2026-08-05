@@ -1,7 +1,0 @@
-{
-    "input_dim_a": 33,
-    "input_dim_v": 709,
-    "input_dim_l": 768,
-    "output_dim": 1,
-    "valid_rate": 0.2
-}
