@@ -1,0 +1,6 @@
+{
+    "data_root": "/home/leng/data/mlzmql/CIF_bestcnow1/data/CMU-MOSEI",
+    "target_root": "/home/leng/data/mlzmql/CIF_bestcnow1/data/CMU-MOSEI/target",
+    "total_cv": 10,
+    "feature_root": "/home/leng/data/mlzmql/CIF_bestcnow1/data/CMU-MOSEI"
+  }

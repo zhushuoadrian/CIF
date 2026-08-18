@@ -1,0 +1,6 @@
+
+  "data_root": "/data3/lrc/IEMOCAP_full_release/",
+  "target_root": "/root/autodl-tmp/CIF/data/CIF_bestcnow1/target",
+  "total_cv": 10,
+  "feature_root": "/root/autodl-tmp/CIF/data/CIF_bestcnow1"
+}
